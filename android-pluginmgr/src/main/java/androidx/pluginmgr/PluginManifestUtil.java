@@ -42,6 +42,8 @@ import android.os.PatternMatcher;
 import android.text.TextUtils;
 
 /**
+ * ZX 使用 PackageManager 读取 packageInfo
+ *
  * @author HouKangxi
  * 
  */
@@ -58,6 +60,7 @@ class PluginManifestUtil {
 				.getPackageArchiveInfo(
 						apkPath,
 						PackageManager.GET_ACTIVITIES
+								| PackageManager.GET_SERVICES // ZX 加入Services信息
 								| PackageManager.GET_RECEIVERS//
 								| PackageManager.GET_PROVIDERS//
 								| PackageManager.GET_META_DATA//

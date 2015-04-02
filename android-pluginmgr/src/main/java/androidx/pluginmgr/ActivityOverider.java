@@ -50,24 +50,40 @@ public class ActivityOverider {
 	 * @param fromAct
 	 */
 	public static ComponentName overrideStartService(Activity fromAct,String pluginId,Intent intent) {
-		//TODO 覆盖 StarService 方法
 		Log.d(tag, "overrideStartService");
-		return fromAct.startService(intent);
+		//TODO 覆盖 StarService 方法
+		//TODO ZX 返回的ComponentName我们需要生成一个假的，用来在Stop时识别
+//		if(!intent.getComponent().getClassName().equals(ProxyService.class.getName())){
+//
+//		}
+		Context context = PluginManager.getInstance().getContext();
+		return context
+					   .startService(new Intent(context, ProxyService.class).putExtra("oldIntent", intent));
+//		return fromAct.startService(intent);
 	}
 	public static boolean overrideBindService(Activity fromAct,String pluginId,Intent intent,ServiceConnection conn, int flags) {
 		//TODO overrideBindService
 		Log.d(tag, "overrideBindService");
-		return fromAct.bindService(intent, conn, flags);
+//		return fromAct.bindService(intent, conn, flags);
+		Context context = PluginManager.getInstance().getContext();
+		return context
+					   .bindService(new Intent(context, ProxyService.class).putExtra("oldIntent", intent), conn, flags);
+
 	}
 	public static void overrideUnbindService(Activity fromAct,String pluginId,ServiceConnection conn) {
 		//TODO overrideUnbindService
 		Log.d(tag, "overrideUnbindService");
-		fromAct.unbindService( conn);
+//		fromAct.unbindService( conn);
+		Context context = PluginManager.getInstance().getContext();
+		context.unbindService(conn);
 	}
 	public static boolean overrideStopService(Activity fromAct,String pluginId,Intent intent){
 		//TODO overrideStopService
 		Log.d(tag, "overrideStopService");
-		return fromAct.stopService(intent);
+//		return fromAct.stopService(intent);
+		Context context = PluginManager.getInstance().getContext();
+		return context
+					   .stopService(new Intent(context, ProxyService.class).putExtra("oldIntent", intent));
 	}
 	// ------------------ process Activity ---------------------------
 	/**

@@ -107,7 +107,8 @@
             </intent-filter>
         </activity>
         
-        <activity android:name="androidx.pluginmgr.PluginActivity" /> 
+        <activity android:name="androidx.pluginmgr.PluginActivity" />
+		<service android:name="androidx.pluginmgr.ProxyService" />
     </application>
 <uses-permission android:name="android.permission.ACCESS_WIFI_STATE">
 	</uses-permission>

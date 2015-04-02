@@ -25,6 +25,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.FeatureInfo;
 import android.content.pm.InstrumentationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionGroupInfo;
 import android.content.pm.PermissionInfo;
@@ -33,7 +34,9 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.UserHandle;
 
 /**
  * Customer PackageManager
@@ -82,7 +85,12 @@ public class PluginPackageManager extends PackageManager {
 		return orig.getLaunchIntentForPackage(packageName);
 	}
 
-	@Override
+    @Override
+    public Intent getLeanbackLaunchIntentForPackage(String packageName) {
+        return null;
+    }
+
+    @Override
 	public int[] getPackageGids(String packageName)
 			throws NameNotFoundException {
 		PlugInfo plugin = PluginManager.getInstance().getPluginByPackageName(
@@ -193,7 +201,12 @@ public class PluginPackageManager extends PackageManager {
 		return orig.getInstalledPackages(flags);
 	}
 
-	@Override
+    @Override
+    public List<PackageInfo> getPackagesHoldingPermissions(String[] permissions, int flags) {
+        return null;
+    }
+
+    @Override
 	public int checkPermission(String permName, String pkgName) {
 		// TODO checkPermission
 		return orig.checkPermission(permName, pkgName);
@@ -316,7 +329,12 @@ public class PluginPackageManager extends PackageManager {
 		return orig.queryIntentServices(intent, flags);
 	}
 
-	@Override
+    @Override
+    public List<ResolveInfo> queryIntentContentProviders(Intent intent, int flags) {
+        return null;
+    }
+
+    @Override
 	public ProviderInfo resolveContentProvider(String name, int flags) {
 		// TODO Auto-generated method stub
 		return orig.resolveContentProvider(name, flags);
@@ -373,7 +391,17 @@ public class PluginPackageManager extends PackageManager {
 		return orig.getActivityIcon(intent);
 	}
 
-	@Override
+    @Override
+    public Drawable getActivityBanner(ComponentName activityName) throws NameNotFoundException {
+        return null;
+    }
+
+    @Override
+    public Drawable getActivityBanner(Intent intent) throws NameNotFoundException {
+        return null;
+    }
+
+    @Override
 	public Drawable getDefaultActivityIcon() {
 		// TODO getDefaultActivityIcon
 		return orig.getDefaultActivityIcon();
@@ -402,7 +430,17 @@ public class PluginPackageManager extends PackageManager {
 		return orig.getApplicationIcon(packageName);
 	}
 
-	@Override
+    @Override
+    public Drawable getApplicationBanner(ApplicationInfo info) {
+        return null;
+    }
+
+    @Override
+    public Drawable getApplicationBanner(String packageName) throws NameNotFoundException {
+        return null;
+    }
+
+    @Override
 	public Drawable getActivityLogo(ComponentName activityName)
 			throws NameNotFoundException {
 		// TODO Auto-generated method stub
@@ -447,12 +485,28 @@ public class PluginPackageManager extends PackageManager {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see android.content.pm.PackageManager#getText(java.lang.String, int,
-	 * android.content.pm.ApplicationInfo)
-	 */
+    @Override
+    public Drawable getUserBadgedIcon(Drawable icon, UserHandle user) {
+        return null;
+    }
+
+    @Override
+    public Drawable getUserBadgedDrawableForDensity(Drawable drawable, UserHandle user, Rect badgeLocation,
+                                                    int badgeDensity) {
+        return null;
+    }
+
+    @Override
+    public CharSequence getUserBadgedLabel(CharSequence label, UserHandle user) {
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see android.content.pm.PackageManager#getText(java.lang.String, int,
+     * android.content.pm.ApplicationInfo)
+     */
 	@Override
 	public CharSequence getText(String packageName, int resid,
 			ApplicationInfo appInfo) {
@@ -525,13 +579,28 @@ public class PluginPackageManager extends PackageManager {
 		return orig.getResourcesForApplication(appPackageName); 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * android.content.pm.PackageManager#getInstallerPackageName(java.lang.String
-	 * )
-	 */
+    @Override
+    public void verifyPendingInstall(int id, int verificationCode) {
+
+    }
+
+    @Override
+    public void extendVerificationTimeout(int id, int verificationCodeAtTimeout, long millisecondsToDelay) {
+
+    }
+
+    @Override
+    public void setInstallerPackageName(String targetPackage, String installerPackageName) {
+
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * android.content.pm.PackageManager#getInstallerPackageName(java.lang.String
+     * )
+     */
 	@Override
 	public String getInstallerPackageName(String packageName) {
 		// TODO Auto-generated method stub
@@ -673,5 +742,10 @@ public class PluginPackageManager extends PackageManager {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
+    @Override
+    public PackageInstaller getPackageInstaller() {
+        return null;
+    }
 
 }

@@ -93,6 +93,12 @@ public class PluginManager implements FileFilter {
 		return instance;
 	}
 
+	/**
+	 * ZX 启动 Activity 主入口
+	 * @param context
+	 * @param pkgOrId
+	 * @return
+	 */
 	public boolean startMainActivity(Context context, String pkgOrId) {
 		Log.d(tag, "startMainActivity by:" + pkgOrId);
 		PlugInfo plug = preparePlugForStartActivity(context, pkgOrId);
@@ -122,6 +128,13 @@ public class PluginManager implements FileFilter {
 		activity.startActivityForResult(intent, requestCode);
 	}
 
+	/**
+	 * ZX 根据 plugId 或 Pkg 标识，查找 PlugInfo
+	 *
+	 * @param context
+	 * @param plugIdOrPkg
+	 * @return
+	 */
 	private PlugInfo preparePlugForStartActivity(Context context,
 			String plugIdOrPkg) {
 		PlugInfo plug = null;
@@ -158,6 +171,9 @@ public class PluginManager implements FileFilter {
 		intent.setComponent(comp);
 	}
 
+	/**
+	 * 替换宿主的 Instrumentation，重新定位 targetClassName
+	 */
 	private static class FrameworkInstrumentation extends Instrumentation {
 		@Override
 		public Activity newActivity(ClassLoader cl, String className,
@@ -180,6 +196,10 @@ public class PluginManager implements FileFilter {
 		}
 	}
 
+	/**
+	 * ZX 注入 FrameworkInstrumentation 到宿主
+	 * @param ctx
+	 */
 	private void init(Context ctx) {
 		Log.i(tag, "init()...");
 		context = ctx;
@@ -377,6 +397,20 @@ public class PluginManager implements FileFilter {
 		return plugInfo;
 	}
 
+	/**
+	 * ZX
+	 * 1. 将 Apk 拷贝至私有目录
+	 * 2. 构建 ClassLoader
+	 * 3. 构建 AssetManager 与 Resource
+	 * 4. 构建 Application
+	 *
+	 *
+	 * @param pluginApk
+	 * @param pluginId
+	 * @param targetFileName
+	 * @return
+	 * @throws Exception
+	 */
 	private PlugInfo buildPlugInfo(File pluginApk, String pluginId,
 			String targetFileName) throws Exception {
 		PlugInfo info = new PlugInfo();
@@ -391,7 +425,7 @@ public class PluginManager implements FileFilter {
 			copyApkToPrivatePath(pluginApk, privateFile);
 		}
 		String dexPath = privateFile.getAbsolutePath();
-		PluginManifestUtil.setManifestInfo(context, dexPath, info);
+		PluginManifestUtil.setManifestInfo(context, dexPath, info); // ZX 读取 packageInfo
 
 		PluginClassLoader loader = new PluginClassLoader(dexPath,
 				dexOutputPath, context.getClassLoader(), info);
@@ -436,6 +470,13 @@ public class PluginManager implements FileFilter {
 		initPluginApplication(info, actFrom, false);
 	}
 
+	/**
+	 * ZX 为插件创建 Application
+	 * @param plugin
+	 * @param actFrom
+	 * @param onLoad
+	 * @throws Exception
+	 */
 	private void initPluginApplication(final PlugInfo plugin, Activity actFrom, boolean onLoad) throws Exception {
 		if (!onLoad && plugin.getApplication() != null) {
 			return;

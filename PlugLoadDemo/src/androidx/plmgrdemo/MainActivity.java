@@ -35,7 +35,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		Log.d("plmgrdemo", "MainActivity onCreate()");
 		super.onCreate(savedInstanceState);
-		Thread.setDefaultUncaughtExceptionHandler(new ThreadLogger());
+//		Thread.setDefaultUncaughtExceptionHandler(new ThreadLogger()); // 正常进行错误打印
 		setContentView(R.layout.activity_main);
 
 		final EditText pluginDirTxt = (EditText) findViewById(R.id.pluginDirTxt);
