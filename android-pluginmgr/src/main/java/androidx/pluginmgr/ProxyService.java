@@ -48,7 +48,7 @@ public class ProxyService extends Service {
         if (serviceIntentPair != null) {
             Service service = serviceIntentPair.first;
             boolean unbindResult = service.onUnbind(intent);
-            ensureDestroy(service);
+//            ensureDestroy(service);
             return unbindResult;
         } else {
             return super.onUnbind(intent);
@@ -67,7 +67,8 @@ public class ProxyService extends Service {
             }
 
             ensureCreated(service);
-            service.onStart(oldIntent, startId);
+//            service.onStart(oldIntent, startId);
+            service.onStartCommand(oldIntent, 0, startId);
         }
     }
 
