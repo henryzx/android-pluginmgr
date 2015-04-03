@@ -15,9 +15,6 @@
  */
 package androidx.pluginmgr;
 
-import java.io.File;
-import java.lang.reflect.Field;
-
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -27,6 +24,9 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
+
+import java.io.File;
+import java.lang.reflect.Field;
 
 /**
  * 提供公共方法供自动生成的Activity调用
@@ -82,9 +82,12 @@ public class ActivityOverider {
 		Log.d(tag, "overrideStopService");
 //		return fromAct.stopService(intent);
 		Context context = PluginManager.getInstance().getContext();
-		return context
-					   .stopService(new Intent(context, ProxyService.class).putExtra("oldIntent", intent));
-	}
+        intent.putExtra("stopService", true);
+        context.startService(
+                new Intent(context, ProxyService.class)
+                        .putExtra("oldIntent", intent));
+        return true;
+    }
 	// ------------------ process Activity ---------------------------
 	/**
 	 * 处理 插件Activity 通过 intent 跳转到别的Activity

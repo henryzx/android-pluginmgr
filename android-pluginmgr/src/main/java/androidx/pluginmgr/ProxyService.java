@@ -3,12 +3,6 @@
  */
 package androidx.pluginmgr;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.ComponentName;
@@ -17,6 +11,13 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Pair;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 import androidx.pluginmgr.reflect.Reflect;
 
 /**
@@ -61,9 +62,33 @@ public class ProxyService extends Service {
             Service service = serviceIntentPair.first;
             Intent oldIntent = serviceIntentPair.second;
 
+            if (checkStopService(intent, service)) {
+                return;
+            }
+
             ensureCreated(service);
             service.onStart(oldIntent, startId);
         }
+    }
+
+    /**
+     * 看看是不是stopService
+     *
+     * @param intent
+     * @param service
+     * @return
+     */
+    boolean checkStopService(Intent intent, Service service) {
+        Intent oldIntent = intent.getParcelableExtra("oldIntent");
+        if (oldIntent != null && oldIntent.hasExtra("stopService")
+                && oldIntent.getBooleanExtra("stopService", false)) {
+            if (service != null) {
+                ensureDestroy(service);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private Pair<Service, Intent> getServiceInstanceFromIntent(Intent intent) {
