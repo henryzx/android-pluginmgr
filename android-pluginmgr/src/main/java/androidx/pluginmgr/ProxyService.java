@@ -1,7 +1,25 @@
 /*
- * Copyright (C) 2015 Baidu, Inc. All Rights Reserved.
+ *    Copyright 2015 henryzx <henryzx@hotmail.com>
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 package androidx.pluginmgr;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 import android.annotation.TargetApi;
 import android.app.Service;
@@ -11,17 +29,10 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Pair;
-
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import androidx.pluginmgr.reflect.Reflect;
 
 /**
- * Created by gerald on 4/2/15.
+ * Created by henryzx on 4/2/15.
  */
 @TargetApi(Build.VERSION_CODES.GINGERBREAD)
 public class ProxyService extends Service {
@@ -159,5 +170,17 @@ public class ProxyService extends Service {
 
             runningServices.remove(pendingDeleteKey);
         }
+    }
+
+    /**
+     * 正在运行的服务记录
+     */
+    public static class RunningServiceRecord{
+        public Service service;
+        public ServiceInfo serviceInfo;
+        public ComponentName name;
+        public Intent startIntent;
+
+        public int startCount = 0; //记录被启动的次数
     }
 }
