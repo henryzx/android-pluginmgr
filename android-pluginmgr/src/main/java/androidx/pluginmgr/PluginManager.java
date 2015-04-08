@@ -15,18 +15,6 @@
  */
 package androidx.pluginmgr;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
-import java.lang.ref.SoftReference;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import android.app.Activity;
 import android.app.Application;
 import android.app.Instrumentation;
@@ -40,6 +28,18 @@ import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.util.Log;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.lang.ref.SoftReference;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The Plug-in Manager
@@ -360,19 +360,6 @@ public class PluginManager implements FileFilter {
 		pluginIdToInfoMap.put(plugInfo.getId(), plugInfo);
 	}
 
-	// /**
-	// * 单独加载一个apk <br/>
-	// * 使用文件名作为插件id <br/>
-	// * 目标文件也是与源文件同名
-	// *
-	// * @param pluginApk
-	// * @return
-	// * @throws Exception
-	// */
-	// public PlugInfo loadPlugin(File pluginApk) throws Exception {
-	// return loadPluginWithId(pluginApk, null, null);
-	// }
-
 	/**
 	 * 单独加载一个apk
 	 * 
@@ -451,20 +438,6 @@ public class PluginManager implements FileFilter {
 		return info;
 	}
 
-	// private void createPluginActivityProxyDexes(PlugInfo plugin) {
-	// {
-	// ActInfo act = plugin.getApplicationInfo().getMainActivity();
-	// if (act != null) {
-	// ActivityOverider.createProxyDex(plugin, act.name, false);
-	// }
-	// }
-	// if (plugin.getApplicationInfo().getOtherActivities() != null) {
-	// for (ActInfo act : plugin.getApplicationInfo().getOtherActivities())
-	// {
-	// ActivityOverider.createProxyDex(plugin, act.name, false);
-	// }
-	// }
-	// }
 	void initPluginApplication(final PlugInfo info, Activity actFrom)
 			throws Exception {
 		initPluginApplication(info, actFrom, false);
@@ -544,8 +517,9 @@ public class PluginManager implements FileFilter {
 				}
 			}
 			// register Receivers
-			List<ResolveInfo> receivers = plugin.getReceivers();
-			if(receivers!=null&&!receivers.isEmpty()){
+            // 这里有receiver注册（静态注册）
+            List<ResolveInfo> receivers = plugin.getReceivers();
+            if(receivers!=null&&!receivers.isEmpty()){
 				for(ResolveInfo receiver:receivers){
 					String receiverClassName = receiver.activityInfo.name;
 					try {
