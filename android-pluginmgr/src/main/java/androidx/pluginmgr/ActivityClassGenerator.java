@@ -18,6 +18,7 @@ package androidx.pluginmgr;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -141,6 +142,9 @@ class ActivityClassGenerator {
 
         // 发送broadcast
         declareMethod_sendBroadcast(dexMaker, generatedType, superType);
+
+        // 获取ContentResolver
+        declareMethod_getContentResolver(dexMaker, generatedType, superType);
 
 		// Create life Cycle methods
 		declareLifeCyleMethod(dexMaker, generatedType, superType, "onResume");
@@ -784,5 +788,28 @@ class ActivityClassGenerator {
                 , methodCode.getParameter(0, Intent)
         );
         methodCode.returnVoid();
+    }
+
+    private static <S, D extends S> void declareMethod_getContentResolver(
+            DexMaker dexMaker, TypeId<D> generatedType, TypeId<S> superType) {
+        TypeId<ActivityOverider> ActivityOverider = TypeId
+                .get(ActivityOverider.class);
+        TypeId<ContentResolver> returnType = TypeId.get(ContentResolver.class);
+        MethodId<D, ContentResolver> method = generatedType.getMethod(returnType,
+                "getContentResolver");
+        MethodId<ActivityOverider, ContentResolver> methodOveride = ActivityOverider
+                .getMethod(returnType, "overrideGetContentResolver"
+                        , TypeId.get(Activity.class), TypeId.STRING);
+        Code methodCode = dexMaker.declare(method, PUBLIC);
+        // locals
+        Local<D> localThis = methodCode.getThis(generatedType);
+        Local<ContentResolver> localComponentName = methodCode.newLocal(returnType);
+        Local<String> pluginId = get_pluginId(generatedType, methodCode);
+
+        methodCode.invokeStatic(methodOveride,
+                localComponentName//
+                , localThis, pluginId
+        );
+        methodCode.returnValue(localComponentName);
     }
 }

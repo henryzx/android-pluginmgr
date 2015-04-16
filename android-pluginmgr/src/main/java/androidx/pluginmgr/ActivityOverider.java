@@ -18,6 +18,7 @@ package androidx.pluginmgr;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -474,5 +475,11 @@ public class ActivityOverider {
         Log.i(tag, "overrideSendBroadcast");
         Context context = PluginManager.getInstance().getContext();
         context.sendBroadcast(intent);
+    }
+
+    public static ContentResolver overrideGetContentResolver(Activity fromAct, String pluginId) {
+        Log.i(tag, "overrideGetContentResolver");
+        Context context = PluginManager.getInstance().getContext();
+        return context.getContentResolver();
     }
 }
