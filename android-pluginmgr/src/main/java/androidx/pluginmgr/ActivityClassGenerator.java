@@ -15,22 +15,12 @@
  */
 package androidx.pluginmgr;
 
-import static java.lang.reflect.Modifier.FINAL;
-import static java.lang.reflect.Modifier.PRIVATE;
-import static java.lang.reflect.Modifier.PROTECTED;
-import static java.lang.reflect.Modifier.PUBLIC;
-import static java.lang.reflect.Modifier.STATIC;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
@@ -47,6 +37,18 @@ import com.google.dexmaker.Local;
 import com.google.dexmaker.MethodId;
 import com.google.dexmaker.TypeId;
 import com.google.dexmaker.dx.dex.DexFormat;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+
+import static java.lang.reflect.Modifier.FINAL;
+import static java.lang.reflect.Modifier.PRIVATE;
+import static java.lang.reflect.Modifier.PROTECTED;
+import static java.lang.reflect.Modifier.PUBLIC;
+import static java.lang.reflect.Modifier.STATIC;
 
 /**
  * 动态生成 插件Activity子类的工具类
@@ -130,6 +132,13 @@ class ActivityClassGenerator {
 		declareMethod_bindService(dexMaker, generatedType, superType);
 		declareMethod_unbindService(dexMaker, generatedType, superType);
 		declareMethod_stopService(dexMaker, generatedType, superType);
+
+
+        // 动态注册receiver
+        declareMethod_registerReceiver(dexMaker, generatedType, superType);
+        // 动态反注册receiver
+        declareMethod_unregisterReceiver(dexMaker, generatedType, superType);
+
 		// Create life Cycle methods
 		declareLifeCyleMethod(dexMaker, generatedType, superType, "onResume");
 		declareLifeCyleMethod(dexMaker, generatedType, superType, "onStart");
@@ -697,4 +706,56 @@ class ActivityClassGenerator {
 		methodCode.returnVoid();
 	}
 
+    private static <S, D extends S> void declareMethod_registerReceiver(
+            DexMaker dexMaker, TypeId<D> generatedType, TypeId<S> superType) {
+        TypeId<ActivityOverider> ActivityOverider = TypeId
+                .get(ActivityOverider.class);
+        TypeId<Intent> returnType = TypeId.get(Intent.class);
+        TypeId<BroadcastReceiver> broadcastReceiver = TypeId.get(BroadcastReceiver.class);
+        TypeId<IntentFilter> intentFilter = TypeId.get(IntentFilter.class);
+        MethodId<D, Intent> method = generatedType.getMethod(returnType,
+                "registerReceiver", broadcastReceiver, intentFilter);
+        MethodId<ActivityOverider, Intent> methodOveride = ActivityOverider
+                .getMethod(returnType, "overrideRegisterReceiver"
+                        , TypeId.get(Activity.class), TypeId.STRING
+                        , broadcastReceiver, intentFilter);
+        Code methodCode = dexMaker.declare(method, PUBLIC);
+        // locals
+        Local<D> localThis = methodCode.getThis(generatedType);
+        Local<Intent> localComponentName = methodCode.newLocal(returnType);
+        Local<String> pluginId = get_pluginId(generatedType, methodCode);
+
+        methodCode.invokeStatic(methodOveride,
+                localComponentName//
+                , localThis, pluginId
+                , methodCode.getParameter(0, broadcastReceiver)
+                , methodCode.getParameter(1, intentFilter)
+        );
+        methodCode.returnValue(localComponentName);
+    }
+
+    private static <S, D extends S> void declareMethod_unregisterReceiver(
+            DexMaker dexMaker, TypeId<D> generatedType, TypeId<S> superType) {
+        TypeId<ActivityOverider> ActivityOverider = TypeId
+                .get(ActivityOverider.class);
+//        TypeId<Void> returnType = TypeId.get(Void.class);
+        TypeId<BroadcastReceiver> broadcastReceiver = TypeId.get(BroadcastReceiver.class);
+        MethodId<D, Void> method = generatedType.getMethod(TypeId.VOID,
+                "unregisterReceiver", broadcastReceiver);
+        MethodId<ActivityOverider, Void> methodOveride = ActivityOverider
+                .getMethod(TypeId.VOID, "overrideUnregisterReceiver"
+                        , TypeId.get(Activity.class), TypeId.STRING
+                        , broadcastReceiver);
+        Code methodCode = dexMaker.declare(method, PUBLIC);
+        // locals
+        Local<D> localThis = methodCode.getThis(generatedType);
+        Local<String> pluginId = get_pluginId(generatedType, methodCode);
+
+        methodCode.invokeStatic(methodOveride,
+                null
+                , localThis, pluginId
+                , methodCode.getParameter(0, broadcastReceiver)
+        );
+        methodCode.returnVoid();
+    }
 }

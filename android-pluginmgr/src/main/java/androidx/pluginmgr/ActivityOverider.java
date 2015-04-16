@@ -16,9 +16,11 @@
 package androidx.pluginmgr;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
@@ -453,4 +455,18 @@ public class ActivityOverider {
 			callback.onDestroy(pluginId, fromAct);
 		}
 	}
+
+    public static Intent overrideRegisterReceiver(Activity fromAct, String pluginId,
+                                                  BroadcastReceiver receiver, IntentFilter filter) {
+        Log.i(tag, "overrideRegisterReceiver");
+        Context context = PluginManager.getInstance().getContext();
+        return context.registerReceiver(receiver, filter);
+    }
+
+    public static void overrideUnregisterReceiver(Activity fromAct, String pluginId,
+                                                  BroadcastReceiver receiver) {
+        Log.i(tag, "overrideUnregisterReceiver");
+        Context context = PluginManager.getInstance().getContext();
+        context.unregisterReceiver(receiver);
+    }
 }
