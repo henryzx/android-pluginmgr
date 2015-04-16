@@ -139,6 +139,9 @@ class ActivityClassGenerator {
         // 动态反注册receiver
         declareMethod_unregisterReceiver(dexMaker, generatedType, superType);
 
+        // 发送broadcast
+        declareMethod_sendBroadcast(dexMaker, generatedType, superType);
+
 		// Create life Cycle methods
 		declareLifeCyleMethod(dexMaker, generatedType, superType, "onResume");
 		declareLifeCyleMethod(dexMaker, generatedType, superType, "onStart");
@@ -755,6 +758,30 @@ class ActivityClassGenerator {
                 null
                 , localThis, pluginId
                 , methodCode.getParameter(0, broadcastReceiver)
+        );
+        methodCode.returnVoid();
+    }
+
+    private static <S, D extends S> void declareMethod_sendBroadcast(
+            DexMaker dexMaker, TypeId<D> generatedType, TypeId<S> superType) {
+        TypeId<ActivityOverider> ActivityOverider = TypeId
+                .get(ActivityOverider.class);
+        TypeId<Intent> Intent = TypeId.get(Intent.class);
+        MethodId<D, Void> method = generatedType.getMethod(TypeId.VOID,
+                "sendBroadcast", Intent);
+        MethodId<ActivityOverider, Void> methodOveride = ActivityOverider
+                .getMethod(TypeId.VOID, "overrideSendBroadcast"
+                        , TypeId.get(Activity.class), TypeId.STRING
+                        , Intent);
+        Code methodCode = dexMaker.declare(method, PUBLIC);
+        // locals
+        Local<D> localThis = methodCode.getThis(generatedType);
+        Local<String> pluginId = get_pluginId(generatedType, methodCode);
+
+        methodCode.invokeStatic(methodOveride,
+                null
+                , localThis, pluginId
+                , methodCode.getParameter(0, Intent)
         );
         methodCode.returnVoid();
     }

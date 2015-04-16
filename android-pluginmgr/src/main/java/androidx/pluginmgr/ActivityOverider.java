@@ -469,4 +469,10 @@ public class ActivityOverider {
         Context context = PluginManager.getInstance().getContext();
         context.unregisterReceiver(receiver);
     }
+
+    public static void overrideSendBroadcast(Activity fromAct, String pluginId, Intent intent) {
+        Log.i(tag, "overrideSendBroadcast");
+        Context context = PluginManager.getInstance().getContext();
+        context.sendBroadcast(intent);
+    }
 }
