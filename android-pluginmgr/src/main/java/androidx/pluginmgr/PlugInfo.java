@@ -15,12 +15,6 @@
  */
 package androidx.pluginmgr;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import android.app.Application;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
@@ -29,15 +23,18 @@ import android.content.pm.ServiceInfo;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 插件Bean
- * 
- * @author HouKangxi
- * 
+ * 包含整个插件的运行时
  */
 public class PlugInfo {
 
-	//
 	// ================== FLELDS ==================
 	private String id;
 	private String filePath;
@@ -47,14 +44,16 @@ public class PlugInfo {
 	private List<ResolveInfo> services;
 	private List<ResolveInfo> receivers;
 	private List<ResolveInfo> providers;
-	//
-	private transient PluginClassLoader classLoader;
-	private transient Application application;
-	private transient AssetManager assetManager;
-	private transient Resources resources;
-	PluginContextWrapper appWrapper;
-	//
-	// private transient volatile String currentActivityClass;
+    // 用来加载插件里的类（如Activity、Service）
+    private transient PluginClassLoader classLoader;
+    // 插件Application（或者是在manifest中配置的Application子类）
+    private transient Application application;
+    // 插件的AssetManager（根据插件路径生成）
+    private transient AssetManager assetManager;
+    // 插件的resources（可以访问插件中的R文件加载相应数据）
+    private transient Resources resources;
+    // 插件的App层的ContextWrapper，也可以理解成插件的Application Context
+    PluginContextWrapper appWrapper;
 
 	public String getPackageName() {
 		return packageInfo.packageName;
@@ -91,30 +90,6 @@ public class PlugInfo {
 			return true;//默认true
 		}
 		return containsFlag(flags, FLAG_INVOKE_SUPER_ONBACKPRESSED);
-	}
-
-	public void setInvokeSuperOnbackPressed(ActivityInfo act,
-			boolean invokeSuperOnbackPressed) {
-		if (act == null) {
-			return;
-		}
-		if (invokeSuperOnbackPressed) {
-			setFlag(act, FLAG_INVOKE_SUPER_ONBACKPRESSED);
-		} else {
-			unsetFlag(act, FLAG_INVOKE_SUPER_ONBACKPRESSED);
-		}
-	}
-
-	public void setFinishActivityOnbackPressed(ActivityInfo act,
-			boolean finishOnbackPressed) {
-		if (act == null) {
-			return;
-		}
-		if (finishOnbackPressed) {
-			setFlag(act, FLAG_FinishActivityOnbackPressed);
-		} else {
-			unsetFlag(act, FLAG_FinishActivityOnbackPressed);
-		}
 	}
 
 	 ActivityInfo findActivityByClassNameFromPkg(String actName) {

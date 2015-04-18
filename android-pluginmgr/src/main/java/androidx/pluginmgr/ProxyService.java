@@ -15,12 +15,6 @@
  */
 package androidx.pluginmgr;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.ComponentName;
@@ -29,10 +23,17 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Pair;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+
 import androidx.pluginmgr.reflect.Reflect;
 
 /**
- * Created by henryzx on 4/2/15.
+ * 代理Service，用来做为插件里所有service的容器
  */
 @TargetApi(Build.VERSION_CODES.GINGERBREAD)
 public class ProxyService extends Service {
@@ -103,38 +104,58 @@ public class ProxyService extends Service {
         return false;
     }
 
+    private void attachService(ServiceInfo serviceInfo, PlugInfo plugin) {
+        if (serviceInfo != null) {
+            try {
+                Service delegateService =
+                        (Service) plugin.getClassLoader().loadClass(serviceInfo.name).newInstance();
+                Reflect serviceRef = Reflect.on(delegateService);
+                Reflect thisRef = Reflect.on(this);
+                serviceRef.call("attach", this, thisRef.get("mThread"), thisRef.get("mClassName"),
+                        thisRef.get("mToken"),
+                        plugin.getApplication() == null ? getApplication() : plugin.getApplication(),
+                        thisRef.get("mActivityManager"));
+                runningServices.put(serviceInfo.name, delegateService);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private Pair<Service, Intent> getServiceInstanceFromIntent(Intent intent) {
+        Service delegateService = null;
+        String serviceName = null;
         if (intent.hasExtra("oldIntent")) {
             Intent oldIntent = intent.getParcelableExtra("oldIntent");
-            ComponentName componentName = oldIntent.getComponent();
 
-            Service delegateService = runningServices.get(componentName.flattenToString());
-            if (delegateService == null) {
-                // 实例化插件 service，并进入创建流程
-                PlugInfo plugin = PluginManager.getInstance().getPluginByPackageName(componentName.getPackageName());
-                ServiceInfo serviceInfo = plugin.findServiceByClassName(componentName.getClassName());
-                if (serviceInfo != null) {
-
-                    try {
-                        delegateService =
-                                (Service) plugin.getClassLoader().loadClass(serviceInfo.name).newInstance();
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            if (oldIntent != null && oldIntent.getAction() != null && oldIntent.getAction().length() > 0) {
+                PluginManager mgr = PluginManager.getInstance();
+                for (PlugInfo plugInfo : mgr.getPlugins()) {
+                    ServiceInfo serviceInfo = plugInfo.findServiceByAction(oldIntent.getAction());
+                    if (serviceInfo != null) {
+                        delegateService = runningServices.get(serviceInfo.name);
+                        serviceName = serviceInfo.name;
+                        if (delegateService == null) {
+                            attachService(serviceInfo, plugInfo);
+                        }
                     }
-                    // TODO ZX inject contexts
-                    Reflect serviceRef = Reflect.on(delegateService);
-                    Reflect thisRef = Reflect.on(this);
-                    serviceRef.call("attach", this, thisRef.get("mThread"), thisRef.get("mClassName"),
-                                           thisRef.get("mToken"),
-                                           plugin.getApplication() == null ? getApplication() : plugin.getApplication(),
-                                           thisRef.get("mActivityManager"));
-
-                    runningServices.put(componentName.flattenToString(), delegateService);
+                }
+            } else {
+                ComponentName componentName = oldIntent.getComponent();
+                delegateService = runningServices.get(componentName.flattenToString());
+                if (delegateService == null) {
+                    // 实例化插件 service，并进入创建流程
+                    PlugInfo plugin = PluginManager.getInstance().getPluginByPackageName(componentName.getPackageName());
+                    ServiceInfo serviceInfo = plugin.findServiceByClassName(componentName.getClassName());
+                    if (serviceInfo != null) {
+                        serviceName = serviceInfo.name;
+                        attachService(serviceInfo, plugin);
+                    }
                 }
             }
-
-            return new Pair(delegateService, oldIntent);
+            if (serviceName != null && runningServices.get(serviceName) != null) {
+                return new Pair(runningServices.get(serviceName), oldIntent);
+            }
         }
         return null;
     }

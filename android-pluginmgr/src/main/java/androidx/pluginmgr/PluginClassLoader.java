@@ -15,17 +15,16 @@
  */
 package androidx.pluginmgr;
 
+import android.util.Log;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import android.util.Log;
 import dalvik.system.DexClassLoader;
 
 /**
  * 插件类加载器
- * 
- * @author HouKangxi
  * 
  */
 class PluginClassLoader extends DexClassLoader {
@@ -39,9 +38,9 @@ class PluginClassLoader extends DexClassLoader {
 	private final Map<String, ClassLoader> proxyActivityLoaderMap;
 
 	public PluginClassLoader(String dexPath, String optimizedDir, ClassLoader parent, PlugInfo plugin) {
-		super(dexPath, optimizedDir,plugin.getPackageInfo().applicationInfo.nativeLibraryDir,parent);
-		thisPlugin = plugin;
-		proxyActivityLoaderMap = new HashMap<String, ClassLoader>(plugin.getActivities().size());
+        super(dexPath, optimizedDir, plugin.getPackageInfo().applicationInfo.nativeLibraryDir, parent);
+        thisPlugin = plugin;
+        proxyActivityLoaderMap = new HashMap<String, ClassLoader>(plugin.getActivities().size());
 		this.libraryPath = plugin.getPackageInfo().applicationInfo.nativeLibraryDir;
 		this.optimizedDirectory = optimizedDir;
 		tag = "PluginClassLoader( " + plugin.getPackageInfo().packageName + " )";
@@ -54,9 +53,9 @@ class PluginClassLoader extends DexClassLoader {
 		File dexSavePath = ActivityOverider.createProxyDex(thisPlugin, actClassName, true);
 		ClassLoader actLoader = proxyActivityLoaderMap.get(actClassName);
 		if (actLoader == null) {
-			actLoader = new DexClassLoader(dexSavePath.getAbsolutePath(), optimizedDirectory,libraryPath, this);
-			proxyActivityLoaderMap.put(actClassName, actLoader);
-		}
+            actLoader = new DexClassLoader(dexSavePath.getAbsolutePath(), optimizedDirectory, libraryPath, this);
+            proxyActivityLoaderMap.put(actClassName, actLoader);
+        }
 		return actLoader.loadClass(ActivityOverider.targetClassName);
 	}
 	
