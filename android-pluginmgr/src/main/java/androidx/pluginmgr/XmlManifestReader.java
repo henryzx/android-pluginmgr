@@ -15,18 +15,17 @@
  */
 package androidx.pluginmgr;
 
+import android.util.TypedValue;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.EOFException;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import android.util.TypedValue;
 
 /**
  * 
@@ -36,28 +35,6 @@ class XmlManifestReader {
 	public static final String DEFAULT_XML = "AndroidManifest.xml";
 
 	private XmlManifestReader() {
-	}
-	
-	public static String getManifestXMLFromAPK(String apkPath) {
-		ZipFile file = null;
-		String rs = null;
-		try {
-			File apkFile = new File(apkPath);
-			file = new ZipFile(apkFile, ZipFile.OPEN_READ);
-			ZipEntry entry = file.getEntry(DEFAULT_XML);
-			rs = getManifestXMLFromAPK(file, entry);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (file != null) {
-				try {
-					file.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		return rs;
 	}
 	
 	public static String getManifestXMLFromAPK(ZipFile file, ZipEntry entry) {
@@ -665,46 +642,6 @@ class XmlResourceParser implements android.content.res.XmlResourceParser {
 		throw new XmlPullParserException(E_NOT_SUPPORTED);
 	}
 
-	// final void fetchAttributes(int[] styleableIDs,TypedArray result) {
-	// result.resetIndices();
-	// if (m_attributes==null || m_resourceIDs==null) {
-	// return;
-	// }
-	// boolean needStrings=false;
-	// for (int i=0,e=styleableIDs.length;i!=e;++i) {
-	// int id=styleableIDs[i];
-	// for (int o=0;o!=m_attributes.length;o+=ATTRIBUTE_LENGHT) {
-	// int name=m_attributes[o+ATTRIBUTE_IX_NAME];
-	// if (name>=m_resourceIDs.length ||
-	// m_resourceIDs[name]!=id)
-	// {
-	// continue;
-	// }
-	// int valueType=m_attributes[o+ATTRIBUTE_IX_VALUE_TYPE];
-	// int valueData;
-	// int assetCookie;
-	// if (valueType==TypedValue.TYPE_STRING) {
-	// valueData=m_attributes[o+ATTRIBUTE_IX_VALUE_STRING];
-	// assetCookie=-1;
-	// needStrings=true;
-	// } else {
-	// valueData=m_attributes[o+ATTRIBUTE_IX_VALUE_DATA];
-	// assetCookie=0;
-	// }
-	// result.addValue(i,valueType,valueData,assetCookie,id,0);
-	// }
-	// }
-	// if (needStrings) {
-	// result.setStrings(m_strings);
-	// }
-	// }
-
-	final StringBlock getStrings() {
-		return m_strings;
-	}
-
-	// /////////////////////////////////
-
 	private final int getAttributeOffset(int index) {
 		if (m_event != START_TAG) {
 			throw new IndexOutOfBoundsException(
@@ -933,26 +870,6 @@ final class IntReader {
 		reset(null, false);
 	}
 
-	public final InputStream getStream() {
-		return m_stream;
-	}
-
-	public final boolean isBigEndian() {
-		return m_bigEndian;
-	}
-
-	public final void setBigEndian(boolean bigEndian) {
-		m_bigEndian = bigEndian;
-	}
-
-	public final int readByte() throws IOException {
-		return readInt(1);
-	}
-
-	public final int readShort() throws IOException {
-		return readInt(2);
-	}
-
 	public final int readInt() throws IOException {
 		return readInt(4);
 	}
@@ -998,16 +915,6 @@ final class IntReader {
 		}
 	}
 
-	public final byte[] readByteArray(int length) throws IOException {
-		byte[] array = new byte[length];
-		int read = m_stream.read(array);
-		m_position += read;
-		if (read != length) {
-			throw new EOFException();
-		}
-		return array;
-	}
-
 	public final void skip(int bytes) throws IOException {
 		if (bytes <= 0) {
 			return;
@@ -1021,14 +928,6 @@ final class IntReader {
 
 	public final void skipInt() throws IOException {
 		skip(4);
-	}
-
-	public final int available() throws IOException {
-		return m_stream.available();
-	}
-
-	public final int getPosition() {
-		return m_position;
 	}
 
 	// ///////////////////////////////// data
@@ -1063,10 +962,6 @@ final class NamespaceStack {
 		m_dataLength = 0;
 		m_count = 0;
 		m_depth = 0;
-	}
-
-	public final int getTotalCount() {
-		return m_count;
 	}
 
 	public final int getCurrentCount() {
@@ -1109,34 +1004,6 @@ final class NamespaceStack {
 		m_count += 1;
 	}
 
-	public final boolean pop(int prefix, int uri) {
-		if (m_dataLength == 0) {
-			return false;
-		}
-		int offset = m_dataLength - 1;
-		int count = m_data[offset];
-		for (int i = 0, o = offset - 2; i != count; ++i, o -= 2) {
-			if (m_data[o] != prefix || m_data[o + 1] != uri) {
-				continue;
-			}
-			count -= 1;
-			if (i == 0) {
-				m_data[o] = count;
-				o -= (1 + count * 2);
-				m_data[o] = count;
-			} else {
-				m_data[offset] = count;
-				offset -= (1 + 2 + count * 2);
-				m_data[offset] = count;
-				System.arraycopy(m_data, o + 2, m_data, o, m_dataLength - o);
-			}
-			m_dataLength -= 2;
-			m_count -= 1;
-			return true;
-		}
-		return false;
-	}
-
 	public final boolean pop() {
 		if (m_dataLength == 0) {
 			return false;
@@ -1166,10 +1033,6 @@ final class NamespaceStack {
 
 	public final int findPrefix(int uri) {
 		return find(uri, false);
-	}
-
-	public final int findUri(int prefix) {
-		return find(prefix, true);
 	}
 
 	public final int getDepth() {
@@ -1311,13 +1174,6 @@ class StringBlock {
 	}
 
 	/**
-	 * Returns number of strings in block.
-	 */
-	public int getCount() {
-		return m_stringOffsets != null ? m_stringOffsets.length : 0;
-	}
-
-	/**
 	 * Returns raw string (without any styling information) at specified index.
 	 */
 	public String getString(int index) {
@@ -1342,61 +1198,6 @@ class StringBlock {
 	 */
 	public CharSequence get(int index) {
 		return getString(index);
-	}
-
-	/**
-	 * Returns string with style tags (html-like).
-	 */
-	public String getHTML(int index) {
-		String raw = getString(index);
-		if (raw == null) {
-			return raw;
-		}
-		int[] style = getStyle(index);
-		if (style == null) {
-			return raw;
-		}
-		StringBuilder html = new StringBuilder(raw.length() + 32);
-		int offset = 0;
-		while (true) {
-			int i = -1;
-			for (int j = 0; j != style.length; j += 3) {
-				if (style[j + 1] == -1) {
-					continue;
-				}
-				if (i == -1 || style[i + 1] > style[j + 1]) {
-					i = j;
-				}
-			}
-			int start = ((i != -1) ? style[i + 1] : raw.length());
-			for (int j = 0; j != style.length; j += 3) {
-				int end = style[j + 2];
-				if (end == -1 || end >= start) {
-					continue;
-				}
-				if (offset <= end) {
-					html.append(raw, offset, end + 1);
-					offset = end + 1;
-				}
-				style[j + 2] = -1;
-				html.append('<');
-				html.append('/');
-				html.append(getString(style[j]));
-				html.append('>');
-			}
-			if (offset < start) {
-				html.append(raw, offset, start);
-				offset = start;
-			}
-			if (i == -1) {
-				break;
-			}
-			html.append('<');
-			html.append(getString(style[i]));
-			html.append('>');
-			style[i + 1] = -1;
-		}
-		return html.toString();
 	}
 
 	/**
